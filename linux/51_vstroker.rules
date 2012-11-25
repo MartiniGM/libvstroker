@@ -1,0 +1,25 @@
+# Taken from http://libusb.6.n5.nabble.com/Automatic-detach-of-a-HID-device-using-udev-Re-How-to-dump-HID-report-descriptor-under-Linux-td3330260.html
+# udev rules to set the access rights of Vstroker devices to anybody
+# and detatch the kernel HID driver
+
+ACTION!="add", GOTO="vstroker_rules_end"
+SUBSYSTEM!="usb", GOTO="vstroker_rules_end"
+
+# only match one vendor and product
+ATTRS{idVendor}=="0451", ATTRS{idProduct}=="55a5", GOTO="vstroker_rules_ok"
+GOTO="vstroker_rules_end"
+
+LABEL="vstroker_rules_ok"
+ENV{DEVTYPE}=="usb_interface", GOTO="vstroker_rules_interface"
+
+# VSTROKER device
+ENV{DEVTYPE}!="usb_device", GOTO="vstroker_rules_end"
+MODE="0666"
+GOTO="vstroker_rules_end"
+
+# VSTROKER interface
+LABEL="vstroker_rules_interface"
+RUN+="/bin/sh -c 'echo $kernel > /sys/bus/usb/drivers/usbhid/unbind'"
+
+# All done
+LABEL="vstroker_rules_end" 
